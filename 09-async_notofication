@@ -1,0 +1,91 @@
+1 . rather than blocking, linux allows driver to send notification to
+	aplication about device status
+
+	- poll
+	- select
+
+2 . when io is not favourable in application then this can be used
+
+2.1 signal
+--------------------------------------------------------------------------
+- application
+		- upon open, one can set fcntl
+
+			eg.
+			a set this process as owner
+			fcntl(fd, F_SETOWN, getpid());
+
+			b get file flags now
+			oflags = fcntl(fd, F_GETFL);
+
+			c enable async notice
+			fcntl(fd, F_SETFL, oflags|FSSYNC);
+
+			d install handler
+			signal(SIGIO, handler);
+			- handler invoked once driver sends signal.
+
+- driver
+		a. file_operations
+			.fasync = drv_fasync,
+
+			- drv_fasync
+				fasync_helper(fd, file, fasync_struct);
+
+				- kernel fun that stores pid
+				in container(instance of struct fasync)
+
+		b . send notification
+
+			- write - send notification to all pids in
+				asycn_struct
+				POLL_IN - read_event
+				POLL_out - write event
+
+		if(fasync_struct) {
+			kill_fasync(&async_struct, SIGIO, POLL_IN);
+		}
+
+		- in real scenario, we can out this in isr, when data is
+		available.
+
+2.2 poll - wait for some event on fd
+--------------------------------------------------------------------------
+- application
+	- open
+
+	- instance of pollfs
+	fds[0] = fd;
+	fds[0].event = POLLIN;
+
+	for (;;) {
+
+		if ((rc = poll(fds, 1, timeout)) < 0)
+			exit;
+
+		if (rc > 0) {
+			if (fds[0].revents & POLLIN) {
+				read();
+			}
+		}
+	}
+
+- driver
+	- file_operations
+		.poll = drv_poll,
+
+	- create wait queue
+		DECLARE_WAIT_QUEUE_HEAD();
+
+	- drv_poll
+		poll_wait(); - kernel routing that pushes in wt que with
+			tinmeout
+		verify device status
+		- if (data_read)
+			return POLLIN | POLLRDNORM;
+
+	- write
+		set data read
+		data_read = 1;
+
+

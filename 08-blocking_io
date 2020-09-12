@@ -1,0 +1,63 @@
+1 . waiting io -
+	wait/block for io to complete
+	eg. aplication requested read but data is not available.
+
+2 .Blocking methods
+==========================================================================
+
+2.1 - semaphore can be used to wait
+--------------------------------------------------------------------------
+	blocking on read and unblocking on write.
+	- module_init
+		init_MUTEX_LOCKED - initiate with locked.
+
+	- read
+		down_interruptible - trying to hold a lock.
+			since lock is held it waits for lock.
+			maybe in write or i/r, lock can be unlocked.
+
+	- write
+		up
+
+	- here 2 aplications,
+		- blocks read application until write occurs.
+
+	- issues
+		difficault to debugging and reviewing the code
+		multiple reads - should keep sync between read and write.
+
+2.2 - completion
+--------------------------------------------------------------------------
+	- waits for completion to happen
+
+	- DECLARE_COMPLETION
+	- read
+		wait_for_completion
+
+	- write
+		complete
+
+	- wait_for_completion is blocked intil complete occurs.
+
+2.3 - wait-queue
+--------------------------------------------------------------------------
+	- put process in wait queue.
+
+	- DECLARE_WAIT_QUEUE_HEAD(&que)
+
+	- read
+		- wait_event_interruptible();
+			push caller in interruptible wait queue
+			waits for condition to become true.
+
+	- write
+		- wake_up_interruptible
+
+		- wake_up_interruptible_exclusive
+			sent only one process at begining of wait queue
+
+		- PCB's which are in wait q, and become ready to go in
+			ready q. if condition does not match, again go to
+			wait q.
+
+

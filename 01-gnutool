@@ -1,0 +1,175 @@
+1 . make
+-------------------------------------------------------------------------
+	- makefile
+
+	- first rule becomes default rule
+
+	- based on timestamp, it goes for update.
+		- it compiles based on timestamp of the target rule
+		(install:, clean:).
+
+	- script vs makefile - script goes with top to bottom whereas
+	makefile goes with condition
+
+	- when we have file same as target then we should use .PHONY
+	because Makefile assumes that every taget is file itself
+		else it says everything is upto date.
+
+	what file or target is action to give a form or which file, target
+	is to be generated.
+
+	- Makefile components
+	1 . implicit rule
+	2 . explicit rule
+
+	- same s/w should be used same tools (gcc) on other m/c.
+	3 . variables - CC = gcc
+
+	4. directives - mulitple files
+
+	5 . commments
+
+	- eliminate apearing build commands on console - add @
+
+-------------------------------------------------------------------------
+make sure that other pc is also haivng same gnu tools
+
+	gnu autoconf is used.
+
+	autoconfig - script that notes tools having on local m/c
+	config.in - generic script independant of all script (bash,sh etc)
+		dnl - comment
+		macros -
+	Makefile.in - use config.in info and generate Makefile which is
+		form of Makefile.in
+
+	autoconf - gnu utility creates configure
+		interpret all macros from config.in and generate configure
+
+	./configure - script performs all the test whether local m/c
+	having all required tools that is mentioned in config.in
+		generates - ./config.status
+
+	Makefile -
+
+-------------------------------------------------------------------------
+steps to build linux s/w
+	- configure -
+		make menuconfig - .config
+
+	- build
+		make - takes from .config
+
+	- install -
+		make install - make modules_install
+
+-------------------------------------------------------------------------
+
+if you have allocated 4 int and writing 5 ints, then it wil not show error
+but it should return that error. segmentaion violation(can write mem region of other program) and this will not provide solutin bu gnu
+
+1 . efence (over/under-run program)
+
+	soution - elecricfence (efence)
+	- having  boundary check, memory monitor
+	- link .a (static lib) to program -lefence
+	- allocates from mem pool
+	- return segmentaion
+
+	- export switch values
+
+	sudo apt-get install electric-fence
+
+2 . valgrind (memleak - release memory that is allocated.)
+	- kernel provides memory / not bother to release them
+	- still in memory even if prog is terminated.
+	-
+
+	solution - valgrind
+	- valgrind ./prog
+
+	sudo apt-get install valgrind
+
+3 . gdb (debugger)
+	- compile this with -g
+	- gdb ./program - parent of ./program and monitors it
+	- gdb program - then give choice to run later
+	- gets access to stack frame
+
+	- list (l) - list out all instruction of source code
+	- quit (q) - quits
+	- break_point :
+		- break (b) - function name, <line, offset> optional
+		1 . s/w - break (b) -
+		2 . watchpoint - value changes, program stopped
+			- watch - stop program someone tries to read
+			- rwatch - stop program someone tries to read
+			- awatch - stop prog someone tries to read/write
+		3 . catchpoint -
+		4 . hw -
+			- hbreak -
+			store ro memory in cpu reg and raises exceptions.
+			limited no.
+		5 . temp - deleted on first hit
+
+	- run (r) - starts execution
+	- info - information eg. info breakpoints, info frame,
+		info locals
+	- step - temprary brpoint, moves step by step
+	- next - same of next, allow next source of next instruction.
+	- backtrace - detailed frame
+		- "set backtrace past-main on"
+		- backtrace
+	- continue(c) - continues program until program stopped or hit br.
+	- finish - finish, continue to execution of next frame.
+
+	++++++++++++++++++++++++++++++++++++++++++++++++
+
+	1 . * can debug core files too.
+
+	1 . create dumpcore -
+		ulimit -a
+
+	 	core file is 0
+
+	2 . chaned core file size
+		ulimit -c 5000
+
+	3 . run program
+		it generates core
+
+	run core on gdb
+	gdb ./a.out core
+
+	++++++++++++++++++++++++++++++++++++++++++++++++
+
+breakpoint :
+	breakpoint feature by which debuging tool replaces equivalent bin
+	instruction at that point with break command from cpu. Every cpu
+	privide instruction to generate  exceptions that can be used to
+	program. As we know all our aplicat purely rely on s/w exceptions
+	for lot of reasons
+
+		simmilarly debuging relies in such exceptions, & exception
+	are s/w i/r that stops cpu execution to do something more imp.
+	therefore, when exception base instruction or exception calling
+	instruction is place at this breakpoint.
+
+		when point is encountered at program execution, instead of
+	program's execution, breakpoint or excption instruction will be
+	executed and when exception arises, kernel feature or normanl
+	linux feature is to run on equivalent exception handler is run.
+
+	However, When you run apl over debug tools, kernel exception is
+	place aside with debugger exceptions handler would be excecuted.
+	debuger will inject it's own exception handler into the program
+	so that it can manage your code.
+
+	when br point is applied, gdb will provide gdb propmt. and thi
+	takes a control over from apli in gdb. copy of the stack frame is
+	generated and avilabel our  checking.
+	so debugger provide to examine the status of the program what
+	happen to it.
+
+
+

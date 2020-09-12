@@ -1,0 +1,52 @@
+1 . kernel space module can be dynamic or static/buildin
+
+2. should not use any userspace lib
+
+3 . header
+	- linux/module - kmod i/f -clean up and maintain module
+		initialisation, variable
+	- linux/version.h - veriosn stamp
+	- linux/kernel - access to symbol table, global
+	- linux/init - inline
+
+4 . module_init and module_exit
+
+5 . kenrel comment macros for debuging
+	- MODULE_AUTHOR-
+	- MODULE_DESCIPTION -
+	- MODULE_LICENSE -
+
+6 . Makefile
+
+# module hello.c
+obj-m = hello.o
+obj-m += 1.c
+
+
+all:
+# make -c - change dir to kernel path
+# -m module to find to find in
+	$(MAKE) -C $(KERNEL_PATH) -M $(PWD) modules
+
+clean:
+	$(MAKE) -C $(KERNEL_PATH) -M $(PWD) clean
+
+7 . insmod/ rmmod, modprobe/ modprobe -r
+
+8 . cat /proc/modules
+
+9 . EXPORT_SYMBOL() vs EXPORT_SYMBOL_GPL -
+	when you export func GPL, should be piece a
+	(GPL licence code) modules.
+
+10 . linux/moduleparam.h
+module_parm (variable, type, PERMISSION);
+module_parm (val, int, PERMISSION);
+
+insmode hello.ko val=100
+
+	- in /sys
+		/sys/modules/hello/ - currenly inserted
+
+		- val - RO permission
+

@@ -1,0 +1,72 @@
+1 . concurrency - things happen at same time.
+
+2 . race condition :
+	- atomic_t for counter
+		mem lock, cpu specific
+	- set_bit, clear_bit, change_bit
+
+3 . 			locks
+		wait		poll
+	semaphore
+	mutex			spinlock
+
+4 . process state
+
+	parent process				TASK_ZOMBIE
+	    fork 				  task terminated but
+						rsc are not freed
+	     V	                  			^
+
+	TASK_RUNNING		>		TASK_RUNNING
+	ready but not 				 actually running
+	 running
+
+
+	 	<	TASK_INTERRUPTIBLE	>
+	 		TASK_UNINTERRUPTIBLE
+			      waiting
+
+	task_uninterruptible - will not respnd to application
+	task_interruptible - will respnd to application
+
+5 . locks
+	1 . semaphore -
+		down - blocks (uninterruptible) until sem available
+		down_interruptible - blocks until sem available
+			can be interrupted by signal
+		down_trylock - will acquire lock if available
+			wont sleep
+			returns value if success
+
+		up -
+
+		rwsem -
+
+	2 . mutex
+
+		- mutex_lock - can not be interruptible, not killable
+		- mutex_lock_killable - can be interrupted by fatal
+			signal (SIGKILL)
+		- mutex_lock_interruptible - can be interrupted by any sig
+		- mutex_trylock - returns 0 if success or < 0
+
+		- mutex_unlock -
+
+		- simmilar to semaphone, light wt
+
+	3 . spinlocks
+		- spin for lock
+		-
+		- spin_lock_init
+		- spin_lock -
+		- spin_lock_irqsave - disable i/r and saves previous flag
+		- spin_lock_irq - disbles i/r without saving state
+			when you know i/r are enabled
+		- spin_lock_bh - disbles s/w.
+
+
+		- polling
+		- critcal section, atomic, short
+		- disables kernel preemption, i/r
+
+

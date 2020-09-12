@@ -1,0 +1,34 @@
+1 . special operation other than read/write
+	- eg. reset, configure, font setting etc
+	- check compatibility - store this in PCB
+
+2 . 32 bit - command.
+
+3 . 4 fields
+	- type or magic no.
+	- seq no. (8 bits)
+	- directions
+	- size
+
+4 . ioctl macros
+	_IO(type, nr)
+	_IOW(type, nr, arg)
+	_IOR(type, nr, arg)
+	_IOWR(type, nr, arg)
+
+
+5 .
+	ioctl - sys_ioctl - do_ioctl - big_kernel_lock - fops->ioctl
+		 			unlocK
+
+		vfs		kernel			  driver
+
+	unlocked - without lockheld
+
+6 . single thread function - .ioctl
+
+7 . few device take to mulitple parrellely, -
+	register addr of func .unlocked_ioctl
+
+8 . _IOC_DIR - read or write.
+

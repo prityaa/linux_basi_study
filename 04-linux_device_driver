@@ -1,0 +1,108 @@
+
+1. drivers are kernel programs that services to aplication
+
+			1 . user interaction code (kernel specific)
+			 monothilic - syscall, 	microkernel - ipc
+	driver --------
+			2 . driver specific (interacting to h/w)
+				bus/device specific
+
+
+1.1 user interaction code in drivers
+====================================
+	char, block, n/w approches
+
+	char - sync operation, low data transefer
+	eg. key-board
+
+	- show driver to vfs as file system in /dev/
+
+steps to implement and test driver
+--------------------------------------------------------------------------
+1 . mknod /dev/test c 300 0
+
+	/proc/devices - devices are in use to see major and minor no.
+
+2 . open, release, read, write
+	register with vfs and vfs is responsible for aplication request to
+	driver. drivers need to register addr of this fun to vfs,
+	vfs provides file_operations struct.
+
+
+3 . module_init
+	- register fos as a driver in vfs
+	-  dev_t 32 bit, 20 bit major and 12
+
+	- alloc_chrdev_region/register_chrdev_resgion
+	- cdev_alloc - aquire cdev instance
+	- cdev_init() - cdev, fops - inits
+	- cdev_add - cdev, dev_t, count - register cdev in vfs
+	- class_create
+	- device_create
+
+4 . module_exit -
+	- device_destroy
+	- class_destroy
+	- cdev_del
+	- unregister_chrdev_region
+
+5 . application
+
+	- open /dev/device_file
+	- read/write
+
+
+			open()
+			   |
+
+			  vfs
+
+	sys_open, sys_close, sys_lseek, sys_write, sys_read
+
+			   |
+		     struct inode
+
+		  file_operations *fops
+
+		       	   |
+		lists of device driver
+char devices 1 2 3 4 5 ..............................2^20 - major_no
+block devices  .....................................................
+
+			   |
+		 register/unregister
+
+		 	struct module
+
+	- when create device file, vfs later inode is created.inode is
+having file_operations pointer. pointing to spacific location in lists of
+the vfs(char, blk). driver obj denoted cdev_object. These driver obj sits
+in one of the offset(index of the list) - called as major no. vfs knows
+what driver is associates with major no.
+
+open -> sys_open -> cdev.fops->open (driver open)
+
+open :
+========================================================================
+1 . conccurent access
+2 . access to only specific user
+3 . it alawys success, but depends upon condition / scenario, returns
+4 . verify calling aplication, what kind of policy.
+5 . verify caller req and enforce driver policy
+6 . verify device status to wakeup if needed.
+7 . allocate resource -data struct, i/r etc.
+
+release
+==========================================================================
+1 . deallocate all rsc from open
+
+read :
+==========================================================================
+1 . need to verify read operation, offset position.
+2 . read data from device -hw
+3 . convert/process data to aplication
+4 . transfer data to application
+5 . increament *ppos
+6 . return no. of bytes
+
+

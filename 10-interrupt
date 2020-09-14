@@ -1,0 +1,126 @@
+1 .
+	- i/r is signals provided by h/w
+	- i/r controller processes i/r to processor
+	-
+
+2 . data struture
+	irq_desc[NR_IRQS]
+
+	1
+	2
+	3
+	.
+	5  ---> status
+	.     	handler -> hw_interrupt_type (controller .irq in START_MACHINE)
+	.	action	-> irqaction1
+	.	depth      handler
+	n	lock	   mask
+			   flag
+			   next        -> irqaction2
+
+3 . i/r desc table /proc/interrupts
+    i/r stats /proc/stats
+
+
+	line no		CPU0	CPU1	ISR
+
+4 . lspci -v list all i/r lines across pci
+
+5 . request_irq
+	-line
+	- handler
+	- flags
+		- IRQF_DISABLE - keep irqs disabled when calling the action handler
+		- IRQF_SAMPLE_RANDOM - feed to ramdom generator
+		- IRQF_SHARED - shared
+		- IRQF_PROBE_SHARED - set by callers when they expect sharinng mismatch
+		- IRQF_TIMER - timer i/r
+		- IRQF_PERCPU i/r per cpu
+		- IRQF_IRQPOLL for polling
+		- IRQF_NOBALANCING
+
+	- isr label
+	- dev_id
+
+6 . free_irq
+
+7 .vector table
+	vector			Descriptor
+	0-31			non mask
+
+	- in case of msdos, program os such a that isr can be placed in
+	vactro table
+
+8 . do_irq - process scheduler is disabled.
+
+	- kernel configs do_irq routine as a default resonse fun for i/r
+	- func of process 0 (kernel, invokes init and goes to sleep),
+	allocates i/r stack abd low level fun - responsible to invoke isr
+	- 2 stacks
+		- 8k(default) - whichever process is interrupted same
+				will be used for i/r
+		- 4k - in memory constraints
+		     - new stack created by do_irq
+		     - performance loss
+		     -
+	- find irq line, on whici irq was itrigered
+	- look up irq_desc (vector) table for addr of isr.
+	- invoked registers isrs
+	- enable irq line. execute other priority work
+	- envoke process scheduler
+	- schedule interrupted process
+
+* i/r latency : amnt of time spent to serve i/r.
+	- aplication will starve, will not get attension of other i/r
+	- factors :
+		- h/w latency - amt of time processor is taking to ack
+		    i/r to device and jump to vecto table.
+		- kernel latency - amt of time process 0 (kernel, do_irq)
+		    is taking to call isr
+		- isr latency - isr time
+		- s/w i/r latency - time for bottom half
+		- scheduler latency - to schedule process.
+
+	- minimise laterncy
+		- design driver
+
+		n/w driver
+
+		isr {
+			1. allocate buffer
+				kmalloc - variable time
+			2. cp packet from h/w
+				varibable src buffer on target - page map
+			3. precess physical header
+				fixed time
+			4. queue packet for protocol layer
+				if que is full, will have to wait.
+		}
+
+		don't s
+		1 . avoid  calling dynamic alloction
+		2 . avoid transefering data between 2 bufer block sync
+			virtual addr cp
+		3 . avoid containing access of gloable data (lock)
+		4 . avoid operation in space addrs
+		5 . call to schedule(); - scheduler suspend
+		6 . avoid call to operation to non-atomoic
+
+		dos
+		1 . use preallocated buffer - mempool
+		2 . cp virtual addr - use dma
+		3 . per cpu data where needed.
+		4 . identify non critical work & use deffered work
+			3 and 4 in isr impl - bottom half
+
+		/* hard irq */
+		isr
+		{
+			schedule_bh(func);
+		}
+
+		/* s/w irqs */
+		func()
+		{
+			non -critical at safe time
+		}

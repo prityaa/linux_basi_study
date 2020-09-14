@@ -1,0 +1,142 @@
+1 . softirq
+==========================================================================
+1.1	- statically allocated, used in static kernel code driver
+	- max 32 softirq - only 8 are used
+	- preemption disabled, i/r enabled
+	- activating a softirq
+		- register - open_softirq
+		- raise sftirq - raise_softirq
+
+	- executing a softirq
+		- return frm h/w i/r code
+		- by ksoftirq thread
+		- code that explicitly (spin_unlock_bh) checks and
+		executes softirqs
+
+1.2
+	- softirq is made at compile time
+
+	/* sftirq interrupt.h*/
+	enum {
+
+
+		MYSOFTIRQ - new softirq
+	}
+
+	all sftirq are instance of softirq_action struct
+
+	step:
+	-----------------------------------------------------------------
+	- if you want any make a entry here - name of softirq
+	- register a func to this name
+	- open_softirq(mysoftirq, func)
+	- func - ctritical senction
+	- deffered work - raise_softirq() - schedule it
+
+	eg. in n/w driver
+	- module_init - open_softirq(mysoftirq, func);
+
+	-
+	isr
+	{
+		raise_softirq(mysoftirq);
+	}
+
+	func
+	{
+
+	}
+
+	- rebuilt kernel
+
+	1.2.1 execution of softirq
+	------------------------------------------------------------------
+
+	- when raise_softirq gets called, perticular softirq instance
+	mysoftirq (softirq_action) is enqueued into pending list of
+	softirq. kernel mmaintains percpu list and scheduled list of cpu.
+
+	- the moment softirq terminates, do_irq clears this pending list
+		immmidiately after isr terminates with i/r lines enabled
+	softirq runs on context of do_irq
+
+	- softirq are run with irq enabled and preempltion disabled
+	only way to preempt softirq is i/r. - so use spin_lock_bh
+	not by aplicatin (because schedules is not yet enabled in do_irq)
+
+	- spin_lock_bh - common code between read and softirq isr
+
+	e.g
+
+	func() - bottom half - high priority
+	{
+
+		write to list
+	}
+
+	read() - low priority
+	{
+		spin_lock_bh - block execution of bottm half func
+		read list
+		spin_unlock_bh()
+	}
+
+	- during  read if i/r comes and read aquires lock. then isr starts
+	executing. however do_irq skips bottom half if lock is held
+	on that cpu (where read is scheduled)
+
+	- spin_unlock_bh runs softirq list
+
+	- possible of rescheculing of softirq in bottom half.
+	do_irq counts no. of peding obj and clear/decrement obj and enable
+	scheduler(precess context). here we have daemn ksoftirqd, that
+	clear pending softirqs whenver it gets cpu. If preempted,
+	again it blocks
+
+	softirq may execute in context of ksoftirqd (percpu kernel thread)
+
+	- if they are scheculed on isr then they will be scheduled by
+	do_irq. if rescheculing, then ksoftirqd
+
+
+	1.3 need to reschedule :
+	------------------------------------------------------------------
+
+	- read () - cpu 1
+	{
+		spin_lock_bh
+		read
+		spin_unlock_bh
+	}
+
+	bh_funn() - cpu 2
+	{
+		spin_lock_bh
+		write
+		spin_unlock_bh
+	}
+
+
+	- here bh_func will be blocked in i/r context. and waste of cpu
+	- so use try_lock and reschedule bh
+
+	- rescheculing is required to relinguish cpu within bh where
+	critical resource reuired for bh exe is not available at that tim.
+
+	- softirqs can be used in concurent. and should put lock in bh
+	(parellel execution and should use mutual exclusive lock  in bh)
+	and wasting cpu cycles
+
+
+1.3 limitations of softirq
+--------------------------------------------------------------------------
+	1. it is run on concurent, run parellel
+		locking required
+	2. while implememting sfotirq lock, using mutual exclusive lock is
+	is mandatory wherewhere needed
+	3 using lock in i/r context code, will result in variable time i/r
+	latency
+
+	this is why softirq not used in dynamic module.
+
+

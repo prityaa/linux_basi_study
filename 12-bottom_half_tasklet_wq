@@ -1,0 +1,68 @@
+1 . tasklet
+==========================================================================
+
+	- run in i/r contenxt
+
+	- built on top of the softirq
+	- represented by 2 softirqs - HI_SOFTIRQ=0 and TASKLET_SOFTIRQ=4
+	- each tasklet has tasklet_struct structure
+	- created statically and  dynamic
+	- less sync is requiremented - since runs in serialization
+	- schedule with tasklet_schedule
+	- execuated parellely with other tasklet
+
+	1.1 code
+	------------------------------------------------------------------
+	- declare takslet
+		DECLARE_TASKLET(name, func, data)
+			or
+		struct tasklet_struct(name, func, data)
+		tasklet_init
+
+	- implement BH
+		void fun
+
+	- tasklet_schedule
+		or
+	 tasklet_hi_schedule - high priority
+
+	 first high are scheduled/cleared then norman tasklet
+
+	1.2
+	------------------------------------------------------------------
+	- tasklet garantees that they run on only one cpu and same cpu.
+
+	- if previous tasklet is not yet scheduled, then fresh tasklet
+	wil not be scheduled - else it may be scheduled on some other cpu
+
+	- it tasklet is already running another cpu, it's scheduled later
+
+	- other tasklet can be run wrt other tasklet.
+
+
+2 .workqueues
+==========================================================================
+	- precess context
+	- on top of kernel thread
+
+	- where sleep is reuired
+	- event is kernel thread that manages work_queue
+	ps -Af | grep event
+
+	1 . code
+		- DECLARE_WORK / init_work
+
+		- schedule_work
+
+
+3 . kernel timer
+==========================================================================
+	- timers are scheduled after timeout
+	-
+
+	3.1
+		- init_timer
+
+		- add_timer - schedules timer
+
+		-
